@@ -61,6 +61,14 @@ typedef struct b3Shape
 		b3Mesh mesh;
 		const b3HeightFieldData* heightField;
 		const b3CompoundData* compound;
+
+		// A cylinder, and the stand-in hull its queries use (b3MakeCylinderHull),
+		// in the world's hull database.
+		struct
+		{
+			b3Cylinder cylinder;
+			const b3HullData* cylinderHull;
+		};
 	};
 
 } b3Shape;
@@ -155,5 +163,5 @@ static inline bool b3ShouldQueryCollide( const b3Filter* shapeFilter, const b3Qu
 
 static inline bool b3IsConvex( b3ShapeType type )
 {
-	return type == b3_sphereShape || type == b3_capsuleShape || type == b3_hullShape;
+	return type == b3_sphereShape || type == b3_capsuleShape || type == b3_hullShape || type == b3_cylinderShape;
 }

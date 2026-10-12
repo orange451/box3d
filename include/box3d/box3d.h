@@ -840,6 +840,10 @@ B3_API b3ShapeId b3CreateSphereShape( b3BodyId bodyId, const b3ShapeDef* def, co
 /// @return the shape id for accessing the shape
 B3_API b3ShapeId b3CreateCapsuleShape( b3BodyId bodyId, const b3ShapeDef* def, const b3Capsule* capsule );
 
+/// Create a cylinder shape and attach it to a body. Its radius and its length must each be at least
+/// B3_LINEAR_SLOP. Contacts are computed immediately. Anarchy Engine.
+B3_API b3ShapeId b3CreateCylinderShape( b3BodyId bodyId, const b3ShapeDef* def, const b3Cylinder* cylinder );
+
 /// Create a convex hull shape and attach it to a body. The shape definition is fully cloned. Contacts are not created
 /// until the next time step.
 /// @return the shape id for accessing the shape
@@ -988,6 +992,9 @@ B3_API b3Sphere b3Shape_GetSphere( b3ShapeId shapeId );
 /// Get a copy of the shape's capsule. Asserts the type is correct.
 B3_API b3Capsule b3Shape_GetCapsule( b3ShapeId shapeId );
 
+/// Get a copy of the shape's cylinder. Asserts the type is correct. Anarchy Engine.
+B3_API b3Cylinder b3Shape_GetCylinder( b3ShapeId shapeId );
+
 /// Get the shape's convex hull. Asserts the type is correct.
 B3_API const b3HullData* b3Shape_GetHull( b3ShapeId shapeId );
 
@@ -1006,6 +1013,9 @@ B3_API void b3Shape_SetSphere( b3ShapeId shapeId, const b3Sphere* sphere );
 /// This does not modify the mass properties.
 /// @see b3Body_ApplyMassFromShapes
 B3_API void b3Shape_SetCapsule( b3ShapeId shapeId, const b3Capsule* capsule );
+
+/// Allows you to change a shape to be a cylinder or update the current cylinder. Anarchy Engine.
+B3_API void b3Shape_SetCylinder( b3ShapeId shapeId, const b3Cylinder* cylinder );
 
 /// Allows you to change a shape to be a hull or update the current hull.
 /// This does not modify the mass properties.

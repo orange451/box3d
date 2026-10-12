@@ -465,6 +465,9 @@ typedef enum b3ShapeType
 	/// A sphere with an offset
 	b3_sphereShape,
 
+	/// A solid cylinder (Anarchy Engine)
+	b3_cylinderShape,
+
 	/// The number of shape types
 	b3_shapeTypeCount
 } b3ShapeType;
@@ -1978,6 +1981,27 @@ typedef struct b3Capsule
 } b3Capsule;
 
 /**@}*/ // capsule
+
+/**
+ * @defgroup cylinder Cylinder
+ * @brief Cylinder primitive (Anarchy Engine)
+ * @{
+ */
+
+/// A solid cylinder: two flat caps joined by a round side.
+typedef struct b3Cylinder
+{
+	/// Local center of the first cap
+	b3Vec3 center1;
+
+	/// Local center of the second cap
+	b3Vec3 center2;
+
+	/// The radius of the caps
+	float radius;
+} b3Cylinder;
+
+/**@}*/ // cylinder
 
 /**
  * @defgroup hull Convex Hull

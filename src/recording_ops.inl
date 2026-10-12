@@ -236,3 +236,5 @@ B3_REC_OP( 0xF1, StateHash, RET_NONE, ARG( WORLDID, world ) ARG( U64, hash ) )
 
 // Accumulated world bounds over the whole recording, written once at stop.
 B3_REC_OP( 0xF2, RecordingBounds, RET_NONE, ARG( AABB, bounds ) )
+B3_REC_OP( 0xF3, CreateCylinderShape, RET_SHAPEID, ARG( BODYID, body ) ARG( SHAPEDEF, def ) ARG( CYLINDER, cylinder ) )
+B3_REC_OP( 0xF4, ShapeSetCylinder, RET_NONE, ARG( SHAPEID, shape ) ARG( CYLINDER, cylinder ) )

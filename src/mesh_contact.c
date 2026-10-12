@@ -632,6 +632,11 @@ bool b3ComputeMeshManifolds( b3World* world, int workerIndex, b3Contact* contact
 				b3CollideTriangleAndSphere( manifold, pointCapacity, vertices, &shapeB->sphere );
 				break;
 
+			case b3_cylinderShape:
+				b3CollideTriangleAndCylinder( manifold, pointCapacity, vertices, triangle.flags, &shapeB->cylinder,
+											  shapeB->cylinderHull, &cache->satCache, enableSpeculative );
+				break;
+
 			default:
 				B3_ASSERT( false );
 				return false;
@@ -1179,6 +1184,10 @@ bool b3ComputeMeshManifolds( b3World* world, int workerIndex, b3Contact* contact
 	else if ( shapeB->type == b3_hullShape )
 	{
 		radiusB = shapeB->hull->innerRadius;
+	}
+	else if ( shapeB->type == b3_cylinderShape )
+	{
+		radiusB = shapeB->cylinder.radius;
 	}
 
 	contact->rollingResistance = materialB->rollingResistance * radiusB;

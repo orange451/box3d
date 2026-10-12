@@ -171,6 +171,7 @@ typedef b3Matrix3 b3RecCType_MATRIX3;
 typedef b3AABB b3RecCType_AABB;
 typedef b3Sphere b3RecCType_SPHERE;
 typedef b3Capsule b3RecCType_CAPSULE;
+typedef b3Cylinder b3RecCType_CYLINDER;
 typedef b3QueryFilter b3RecCType_QUERYFILTER;
 typedef b3ShapeProxy b3RecCType_SHAPEPROXY;
 // Geometry reference: a plain u32 id into the trailing registry
@@ -249,6 +250,7 @@ void b3RecW_SHAPEID( b3RecBuffer* buf, b3ShapeId v );
 void b3RecW_JOINTID( b3RecBuffer* buf, b3JointId v );
 void b3RecW_SPHERE( b3RecBuffer* buf, b3Sphere v );
 void b3RecW_CAPSULE( b3RecBuffer* buf, b3Capsule v );
+void b3RecW_CYLINDER( b3RecBuffer* buf, b3Cylinder v );
 void b3RecW_GEOMID( b3RecBuffer* buf, uint32_t v );
 void b3RecW_FILTER( b3RecBuffer* buf, b3Filter v );
 void b3RecW_MATERIAL( b3RecBuffer* buf, b3SurfaceMaterial v );

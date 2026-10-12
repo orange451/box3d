@@ -253,6 +253,11 @@ void b3RecW_CAPSULE( b3RecBuffer* buf, b3Capsule v )
 	b3RecBufAppend( buf, &v, (int)sizeof( b3Capsule ) );
 }
 
+void b3RecW_CYLINDER( b3RecBuffer* buf, b3Cylinder v )
+{
+	b3RecBufAppend( buf, &v, (int)sizeof( b3Cylinder ) );
+}
+
 void b3RecW_GEOMID( b3RecBuffer* buf, uint32_t v )
 {
 	b3RecW_U32( buf, v );

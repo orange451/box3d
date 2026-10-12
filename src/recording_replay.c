@@ -328,6 +328,13 @@ b3Capsule b3RecR_CAPSULE( b3RecReader* rdr )
 	return c;
 }
 
+b3Cylinder b3RecR_CYLINDER( b3RecReader* rdr )
+{
+	b3Cylinder c;
+	b3RecRdrBlob( rdr, &c, (int)sizeof( c ) );
+	return c;
+}
+
 uint32_t b3RecR_GEOMID( b3RecReader* rdr )
 {
 	return b3RecR_U32( rdr );
@@ -1007,6 +1014,14 @@ static void b3RecDispatch_CreateCapsuleShape( const b3RecArgs_CreateCapsuleShape
 	b3RecCheckShapeId( rdr, gotId, recId );
 }
 
+static void b3RecDispatch_CreateCylinderShape( const b3RecArgs_CreateCylinderShape* a, b3RecReader* rdr )
+{
+	b3ShapeId recId = b3RecR_SHAPEID( rdr );
+	b3BodyId bodyId = b3RecMakeBodyId( rdr, a->body );
+	b3ShapeId gotId = b3CreateCylinderShape( bodyId, &a->def, &a->cylinder );
+	b3RecCheckShapeId( rdr, gotId, recId );
+}
+
 static void b3RecDispatch_CreateHullShape( const b3RecArgs_CreateHullShape* a, b3RecReader* rdr )
 {
 	b3ShapeId recId = b3RecR_SHAPEID( rdr );
@@ -1167,6 +1182,11 @@ static void b3RecDispatch_ShapeSetSphere( const b3RecArgs_ShapeSetSphere* a, b3R
 static void b3RecDispatch_ShapeSetCapsule( const b3RecArgs_ShapeSetCapsule* a, b3RecReader* rdr )
 {
 	b3Shape_SetCapsule( b3RecMakeShapeId( rdr, a->shape ), &a->capsule );
+}
+
+static void b3RecDispatch_ShapeSetCylinder( const b3RecArgs_ShapeSetCylinder* a, b3RecReader* rdr )
+{
+	b3Shape_SetCylinder( b3RecMakeShapeId( rdr, a->shape ), &a->cylinder );
 }
 
 static void b3RecDispatch_ShapeSetHull( const b3RecArgs_ShapeSetHull* a, b3RecReader* rdr )

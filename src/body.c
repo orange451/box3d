@@ -573,7 +573,7 @@ float b3Body_GetClosestPoint( b3BodyId bodyId, b3Vec3* result, b3Vec3 target )
 		shapeId = shape->nextShapeId;
 
 		b3ShapeType type = shape->type;
-		if ( type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape )
+		if ( type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape && type != b3_cylinderShape )
 		{
 			continue;
 		}
@@ -788,7 +788,7 @@ int b3Body_CollideMover( b3BodyId bodyId, b3BodyPlaneResult* bodyPlanes, int pla
 		}
 
 		b3ShapeType type = shape->type;
-		if ( type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape )
+		if ( type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape && type != b3_cylinderShape )
 		{
 			continue;
 		}
@@ -863,7 +863,7 @@ b3BodyTOIResult b3Body_TimeOfImpactMover( b3BodyId bodyId, b3Pos origin, const b
 		}
 
 		b3ShapeType type = shape->type;
-		if ( type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape )
+		if ( type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape && type != b3_cylinderShape )
 		{
 			continue;
 		}

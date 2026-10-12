@@ -1328,6 +1328,12 @@ static bool DrawQueryCallback( int proxyId, uint64_t userData, void* context )
 					debugShape.capsule = &shape->capsule;
 					shape->userShape = world->createDebugShape( &debugShape, world->userDebugShapeContext );
 					break;
+				case b3_cylinderShape:
+					// A debug renderer draws its stand-in hull.
+					debugShape.type = b3_hullShape;
+					debugShape.hull = shape->cylinderHull;
+					shape->userShape = world->createDebugShape( &debugShape, world->userDebugShapeContext );
+					break;
 				case b3_compoundShape:
 					debugShape.compound = shape->compound;
 					shape->userShape = world->createDebugShape( &debugShape, world->userDebugShapeContext );

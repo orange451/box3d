@@ -1032,6 +1032,170 @@ b3DistanceOutput b3ShapeDistance( const b3DistanceInput* input, b3SimplexCache* 
 	return distanceOutput;
 }
 
+// Anarchy Engine: b3ShapeDistance's loop with support functions in place of
+// point clouds, so the same simplex solver serves a round shape. A support
+// point never repeats exactly on a round surface, so it also stops when a new
+// support point brings the simplex no nearer than a millionth.
+#define B3_MAX_SUPPORT_GJK_ITERATIONS 64
+
+b3DistanceOutput b3SupportDistance( b3SupportFcn* supportA, const void* shapeA, b3SupportFcn* supportB,
+									const void* shapeB, b3Transform transformBtoA )
+{
+	b3Transform xf = transformBtoA;
+	b3Matrix3 m = b3MakeMatrixFromQuat( xf.q );
+	b3Matrix3 mt = b3Transpose( m );
+
+	b3Simplex simplex = { 0 };
+	b3SimplexVertex* vs = simplex.vertices;
+
+	b3Vec3 start = b3Vec3_axisX;
+	vs[0].wA = supportA( shapeA, b3Neg( start ) );
+	vs[0].wB = b3Add( b3MulMV( m, supportB( shapeB, b3MulMV( mt, start ) ) ), xf.p );
+	vs[0].w = b3Sub( vs[0].wB, vs[0].wA );
+	vs[0].a = 1.0f;
+	vs[0].indexA = 0;
+	vs[0].indexB = 0;
+	simplex.count = 1;
+
+	b3Simplex backup = { 0 };
+	b3DistanceOutput output = { 0 };
+	float distanceSq = FLT_MAX;
+	b3Vec3 normal = b3Vec3_zero;
+
+	int iteration = 0;
+	for ( ; iteration < B3_MAX_SUPPORT_GJK_ITERATIONS; ++iteration )
+	{
+		bool solved = false;
+		switch ( simplex.count )
+		{
+			case 1:
+				vs[0].a = 1.0f;
+				solved = true;
+				break;
+			case 2:
+				solved = b3SolveSimplex2( &simplex );
+				break;
+			case 3:
+				solved = b3SolveSimplex3( &simplex );
+				break;
+			case 4:
+				solved = b3SolveSimplex4( &simplex );
+				break;
+			default:
+				B3_ASSERT( !"Should never get here!" );
+				break;
+		}
+
+		if ( solved == false )
+		{
+			B3_ASSERT( backup.count != 0 );
+			simplex = backup;
+			break;
+		}
+
+		if ( simplex.count == B3_MAX_SIMPLEX_VERTICES )
+		{
+			// Overlap
+			b3ComputeWitnessPoints( &simplex, &output.pointA, &output.pointB );
+			output.normal = b3Vec3_zero;
+			output.distance = 0.0f;
+			output.iterations = iteration;
+			return output;
+		}
+
+		float oldDistanceSq = distanceSq;
+
+		b3Vec3 closest = b3Vec3_zero;
+		switch ( simplex.count )
+		{
+			case 1:
+				closest = vs[0].w;
+				break;
+			case 2:
+				closest = b3Blend2( vs[0].a, vs[0].w, vs[1].a, vs[1].w );
+				break;
+			case 3:
+				closest = b3Blend3( vs[0].a, vs[0].w, vs[1].a, vs[1].w, vs[2].a, vs[2].w );
+				break;
+			default:
+				B3_ASSERT( !"Should never get here!" );
+				break;
+		}
+
+		distanceSq = b3Dot( closest, closest );
+		if ( distanceSq >= oldDistanceSq )
+		{
+			B3_ASSERT( backup.count != 0 );
+			simplex = backup;
+			break;
+		}
+
+		if ( distanceSq < 1000.0f * FLT_MIN )
+		{
+			// The origin is on the simplex: overlap.
+			b3ComputeWitnessPoints( &simplex, &output.pointA, &output.pointB );
+			output.normal = b3Vec3_zero;
+			output.distance = 0.0f;
+			output.iterations = iteration;
+			return output;
+		}
+
+		// The closest point's direction is the normal, from A to B.
+		normal = closest;
+
+		// Support of B - A toward the origin.
+		b3Vec3 search = b3Neg( closest );
+		b3Vec3 wA = supportA( shapeA, b3Neg( search ) );
+		b3Vec3 wB = b3Add( b3MulMV( m, supportB( shapeB, b3MulMV( mt, search ) ) ), xf.p );
+		b3Vec3 w = b3Sub( wB, wA );
+
+		// Converged: the new support point gets no nearer the origin.
+		if ( distanceSq - b3Dot( closest, w ) <= 1.0e-6f * distanceSq )
+		{
+			break;
+		}
+
+		backup = simplex;
+
+		bool duplicate = false;
+		for ( int i = 0; i < simplex.count; ++i )
+		{
+			if ( b3DistanceSquared( vs[i].w, w ) <= 1.0e-12f * ( 1.0f + distanceSq ) )
+			{
+				duplicate = true;
+				break;
+			}
+		}
+
+		if ( duplicate )
+		{
+			break;
+		}
+
+		vs[simplex.count].indexA = simplex.count;
+		vs[simplex.count].indexB = simplex.count;
+		vs[simplex.count].wA = wA;
+		vs[simplex.count].wB = wB;
+		vs[simplex.count].w = w;
+		simplex.count += 1;
+	}
+
+	b3ComputeWitnessPoints( &simplex, &output.pointA, &output.pointB );
+	output.iterations = iteration;
+
+	normal = b3Normalize( normal );
+	if ( b3IsNormalized( normal ) == false )
+	{
+		output.distance = 0.0f;
+		output.normal = b3Vec3_zero;
+		return output;
+	}
+
+	output.distance = b3Distance( output.pointA, output.pointB );
+	output.normal = normal;
+	return output;
+}
+
 // Separation function:
 // f(t) = (c2 + t * dp2 - c1 - t * dp1 ) * n
 

@@ -576,6 +576,10 @@ static void b3SerShapes( b3RecBuffer* buf, b3World* world, b3Recording* rec )
 				b3SnapW_I32( buf, (int)b3_capsuleShape );
 				b3SnapW_Bytes( buf, &src->capsule, sizeof( b3Capsule ) );
 				break;
+			case b3_cylinderShape:
+				b3SnapW_I32( buf, (int)b3_cylinderShape );
+				b3SnapW_Bytes( buf, &src->cylinder, sizeof( b3Cylinder ) );
+				break;
 			case b3_hullShape:
 			{
 				b3SnapW_I32( buf, (int)b3_hullShape );
@@ -718,6 +722,13 @@ static void b3DesShapes( b3SnapReader* r, b3World* world, b3RecReader* rdr )
 			case b3_capsuleShape:
 				b3SnapR_Bytes( r, &dst->capsule, sizeof( b3Capsule ) );
 				break;
+			case b3_cylinderShape:
+			{
+				b3SnapR_Bytes( r, &dst->cylinder, sizeof( b3Cylinder ) );
+				b3HullData* standIn = b3MakeCylinderHull( &dst->cylinder );
+				dst->cylinderHull = standIn != NULL ? b3AddOwnedHullToDatabase( world, standIn ) : NULL;
+				break;
+			}
 			case b3_hullShape:
 			{
 				uint32_t gid = b3SnapR_U32( r );
@@ -971,6 +982,11 @@ static void b3FreeLiveSimElements( b3World* world )
 		{
 			b3RemoveHullFromDatabase( world, s->hull );
 			s->hull = NULL;
+		}
+		if ( s->type == b3_cylinderShape && s->cylinderHull != NULL )
+		{
+			b3RemoveHullFromDatabase( world, s->cylinderHull );
+			s->cylinderHull = NULL;
 		}
 		// name / userData / userShape are host-owned; do not free
 	}

@@ -138,6 +138,11 @@ void b3InitializeContactRegisters( void )
 		b3AddType( b3_heightShape, b3_sphereShape );
 		b3AddType( b3_heightShape, b3_capsuleShape );
 		b3AddType( b3_heightShape, b3_hullShape );
+		b3AddType( b3_cylinderShape, b3_sphereShape );
+		b3AddType( b3_cylinderShape, b3_capsuleShape );
+		b3AddType( b3_hullShape, b3_cylinderShape );
+		b3AddType( b3_meshShape, b3_cylinderShape );
+		b3AddType( b3_cylinderShape, b3_cylinderShape );
 		s_initialized = true;
 	}
 }
@@ -233,7 +238,8 @@ void b3CreateContact( b3World* world, b3Shape* shapeA, b3Shape* shapeB, int chil
 	}
 
 	// todo impose these restrictions to make life easier
-	B3_ASSERT( shapeB->type == b3_sphereShape || shapeB->type == b3_capsuleShape || shapeB->type == b3_hullShape );
+	B3_ASSERT( shapeB->type == b3_sphereShape || shapeB->type == b3_capsuleShape || shapeB->type == b3_hullShape ||
+			   shapeB->type == b3_cylinderShape );
 	// B3_ASSERT( bodyB->type != b3_staticBody );
 
 	// Is either body static?
@@ -306,6 +312,10 @@ void b3CreateContact( b3World* world, b3Shape* shapeA, b3Shape* shapeB, int chil
 	{
 		radiusA = shapeA->capsule.radius;
 	}
+	else if ( typeA == b3_cylinderShape )
+	{
+		radiusA = shapeA->cylinder.radius;
+	}
 
 	float radiusB = 0.0f;
 	if ( typeB == b3_sphereShape )
@@ -315,6 +325,10 @@ void b3CreateContact( b3World* world, b3Shape* shapeA, b3Shape* shapeB, int chil
 	else if ( typeB == b3_capsuleShape )
 	{
 		radiusB = shapeB->capsule.radius;
+	}
+	else if ( typeB == b3_cylinderShape )
+	{
+		radiusB = shapeB->cylinder.radius;
 	}
 
 	float maxRadius = b3MaxFloat( radiusA, radiusB );
@@ -512,6 +526,24 @@ static bool b3ComputeConvexManifold( b3World* world, int workerIndex, b3Contact*
 			b3CollideCapsules( &geomManifold, pointCapacity, &shapeA->capsule, &shapeB->capsule, transformBtoA );
 		}
 	}
+	else if ( typeA == b3_cylinderShape )
+	{
+		if ( typeB == b3_sphereShape )
+		{
+			b3CollideCylinderAndSphere( &geomManifold, pointCapacity, &shapeA->cylinder, &shapeB->sphere, transformBtoA );
+		}
+		else if ( typeB == b3_capsuleShape )
+		{
+			b3CollideCylinderAndCapsule( &geomManifold, pointCapacity, &shapeA->cylinder, shapeA->cylinderHull,
+										 &shapeB->capsule, transformBtoA, &cache->simplexCache );
+		}
+		else
+		{
+			B3_ASSERT( typeB == b3_cylinderShape );
+			b3CollideCylinders( &geomManifold, pointCapacity, &shapeA->cylinder, shapeA->cylinderHull, &shapeB->cylinder,
+								shapeB->cylinderHull, transformBtoA, &cache->satCache );
+		}
+	}
 	else
 	{
 		B3_ASSERT( typeA == b3_hullShape );
@@ -525,6 +557,11 @@ static bool b3ComputeConvexManifold( b3World* world, int workerIndex, b3Contact*
 		{
 			b3CollideHullAndCapsule( &geomManifold, pointCapacity, shapeA->hull, &shapeB->capsule, transformBtoA,
 									 &cache->simplexCache );
+		}
+		else if ( typeB == b3_cylinderShape )
+		{
+			b3CollideHullAndCylinder( &geomManifold, pointCapacity, shapeA->hull, &shapeB->cylinder, shapeB->cylinderHull,
+									  transformBtoA, &cache->satCache );
 		}
 		else
 		{
@@ -665,6 +702,10 @@ static bool b3UpdateConvexContact( b3World* world, int workerIndex, b3Contact* c
 		{
 			radiusA = shapeA->capsule.radius;
 		}
+		else if ( typeA == b3_cylinderShape )
+		{
+			radiusA = shapeA->cylinder.radius;
+		}
 		else if ( typeA == b3_hullShape )
 		{
 			radiusA = 0.25f * shapeA->hull->innerRadius;
@@ -678,6 +719,10 @@ static bool b3UpdateConvexContact( b3World* world, int workerIndex, b3Contact* c
 		else if ( typeB == b3_capsuleShape )
 		{
 			radiusB = shapeB->capsule.radius;
+		}
+		else if ( typeB == b3_cylinderShape )
+		{
+			radiusB = shapeB->cylinder.radius;
 		}
 		else if ( typeB == b3_hullShape )
 		{

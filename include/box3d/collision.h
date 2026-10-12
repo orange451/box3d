@@ -595,6 +595,16 @@ B3_API void b3QueryHeightField( const b3HeightFieldData* heightField, b3AABB bou
 B3_API b3DistanceOutput b3ShapeDistance( const b3DistanceInput* input, b3SimplexCache* cache, b3Simplex* simplexes,
 										 int simplexCapacity );
 
+/// A support function: the point of a convex shape farthest along direction, in the shape's own frame.
+/// Anarchy Engine.
+typedef b3Vec3 b3SupportFcn( const void* shape, b3Vec3 direction );
+
+/// GJK distance between two convex shapes given by support functions, for shapes no point cloud holds
+/// exactly (a cylinder). Results are in frame A. No cache: a support function has no indices to warm start
+/// from. Anarchy Engine.
+B3_API b3DistanceOutput b3SupportDistance( b3SupportFcn* supportA, const void* shapeA, b3SupportFcn* supportB,
+										   const void* shapeB, b3Transform transformBtoA );
+
 /// Perform a linear shape cast of shape B moving and shape A fixed. Determines the hit point, normal, and translation fraction.
 /// The query runs in frame A, so the hit point and normal are returned in frame A. Initially touching shapes are a miss.
 B3_API b3CastOutput b3ShapeCast( const b3ShapeCastPairInput* input );
@@ -614,6 +624,48 @@ B3_API b3TOIOutput b3TimeOfImpact( const b3TOIInput* input );
  * @addtogroup collision
  * @{
  */
+
+/// The sides of a cylinder's stand-in hull (b3MakeCylinderHull). Anarchy Engine.
+#define B3_CYLINDER_HULL_SIDES 32
+
+/// Compute mass properties of a cylinder. Anarchy Engine.
+B3_API b3MassData b3ComputeCylinderMass( const b3Cylinder* shape, float density );
+
+/// Compute the bounding box of a transformed cylinder. Anarchy Engine.
+B3_API b3AABB b3ComputeCylinderAABB( const b3Cylinder* shape, b3Transform transform );
+
+/// Ray cast versus cylinder in local space. A ray starting inside reports a hit at its origin with zero
+/// fraction and zero normal, as b3RayCastCapsule does. Anarchy Engine.
+B3_API b3CastOutput b3RayCastCylinder( const b3Cylinder* shape, const b3RayCastInput* input );
+
+/// The cylinder as a hull of B3_CYLINDER_HULL_SIDES sides, its points on the true surface: the stand-in a
+/// cylinder shape's queries use. NULL if Box3D builds none. Destroy it with b3DestroyHull. Anarchy Engine.
+B3_API b3HullData* b3MakeCylinderHull( const b3Cylinder* shape );
+
+/// Collide a cylinder and a sphere. Exact at any depth. Anarchy Engine.
+B3_API void b3CollideCylinderAndSphere( b3LocalManifold* manifold, int capacity, const b3Cylinder* cylinderA,
+										const b3Sphere* sphereB, b3Transform transformBtoA );
+
+/// Collide a cylinder and a capsule. standInA is the cylinder's stand-in hull, for deep overlap. Anarchy Engine.
+B3_API void b3CollideCylinderAndCapsule( b3LocalManifold* manifold, int capacity, const b3Cylinder* cylinderA,
+										 const b3HullData* standInA, const b3Capsule* capsuleB, b3Transform transformBtoA,
+										 b3SimplexCache* cache );
+
+/// Collide a hull and a cylinder. standInB is the cylinder's stand-in hull, for deep overlap. Anarchy Engine.
+B3_API void b3CollideHullAndCylinder( b3LocalManifold* manifold, int capacity, const b3HullData* hullA,
+									  const b3Cylinder* cylinderB, const b3HullData* standInB, b3Transform transformBtoA,
+									  b3SATCache* cache );
+
+/// Collide a triangle and a cylinder, the triangle in the cylinder's frame. Normal points from triangle to
+/// cylinder. standInB is the cylinder's stand-in hull, for deep overlap. Anarchy Engine.
+B3_API void b3CollideTriangleAndCylinder( b3LocalManifold* manifold, int capacity, const b3Vec3* triangleA, int triangleFlags,
+										  const b3Cylinder* cylinderB, const b3HullData* standInB, b3SATCache* cache,
+										  bool enableSpeculative );
+
+/// Collide two cylinders. The stand-in hulls answer for deep overlap. Anarchy Engine.
+B3_API void b3CollideCylinders( b3LocalManifold* manifold, int capacity, const b3Cylinder* cylinderA,
+								const b3HullData* standInA, const b3Cylinder* cylinderB, const b3HullData* standInB,
+								b3Transform transformBtoA, b3SATCache* cache );
 
 /// Collide two spheres.
 B3_API void b3CollideSpheres( b3LocalManifold* manifold, int capacity, const b3Sphere* sphereA, const b3Sphere* sphereB,

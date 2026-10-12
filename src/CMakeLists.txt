@@ -28,6 +28,7 @@ set(BOX3D_SOURCE_FILES
 	core.c
 	core.h
 	ctz.h
+	cylinder.c
 	distance.c
 	distance_joint.c
 	dynamic_tree.c
